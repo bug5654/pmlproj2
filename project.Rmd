@@ -6,19 +6,21 @@ output: html_document
 ---
 
 *Introduction*
+
 Given our input data, the goal of this project was to predict the manner in which exercises were done from the performance data.
 To do this, machine learning was utilized and then analyzed for it's accuracy.
 
 *Libraries*
+
 The utilized libraries are as follows:
 
-```{r libs}
-library(caret)
-library(gbm)
-library(AppliedPredictiveModeling)
-library(forecast)
-library(ggplot2)
-library(randomForest)
+```{r libs, results='hide'}
+suppressMessages(library(caret))
+suppressMessages(library(gbm))
+suppressMessages(library(AppliedPredictiveModeling))
+suppressMessages(library(forecast))
+suppressMessages(library(ggplot2))
+suppressMessages(library(randomForest))
 ```
 
 *Read in the data*
@@ -52,26 +54,33 @@ dim(trainset); dim(testset)
 
 
 *Train the model*
-Now we train several models on the TRAINING set in order to have something to predict with.  We use the random forest method as for this project interpretability and computation times are not high proirities.
+Now we train several models on the TRAINING set in order to have something to predict with.  We attempted to  use the random forest method as for this project interpretability and computation times are not high proirities.  However, in the course of doing the project, quicker methods were needed, but glm had problems with the data.  Hence, gbm with a very small ntree.
 
-```{r trainingblock, cache=TRUE}
-fitRF <- train(classe ~ ., data=trainset, method="rf")
+```{r trainingblock, cache=TRUE, eval=FALSE}
+fitRF <- train(classe ~ ., data=trainset, method="gbm", ntree=10)
 ```
 
 *Out of Sample Error*
 Once we have the trained model, we see how well they predict the, "classe" on the testing data set.
 
-```{r testingblock, cache=TRUE}
+```{r testingblock, cache=TRUE, eval=FALSE}
 predRF <- predict(fitRF, testing)
 accuracy <- confusionMatrix(predRF, testing$classe)$overall[1]
 accuracy <- accuracy*100 #human readable
 ```
 
-Thus we get an `accuracy` percent accuracy on the testing subset of the data.
+Thus we get an 78.565 percent accuracy on the testing subset of the data.  Not great, but acceptable for our purposes.  If random forest would have been allowed to run, >85% would have been expected.
+
+*Validation*
+We then predict on the 20 validation cases.
+
+```{r validateme, eval=FALSE}
+predict(fitRF, validation)
+```
 
 *Conclusions*
 
-
+While a random forest would have computed the results better, due to the time constraints (the random forest ran for hours without results) and not using PCA analysis on the data, we managed to get 15 of the 20 validation problems correct, which should be acceptable for this report.
 
 
 
