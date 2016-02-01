@@ -1,0 +1,79 @@
+---
+title: "Exercise Prediction"
+author: "Nathan E. Wendling"
+date: "January 31, 2016"
+output: html_document
+---
+
+*Introduction*
+Given our input data, the goal of this project was to predict the manner in which exercises were done from the performance data.
+To do this, machine learning was utilized and then analyzed for it's accuracy.
+
+*Libraries*
+The utilized libraries are as follows:
+
+```{r libs}
+library(caret)
+library(gbm)
+library(AppliedPredictiveModeling)
+library(forecast)
+library(ggplot2)
+library(randomForest)
+```
+
+*Read in the data*
+Reading in the data from the provided .csv files:
+
+```{r init, cache=TRUE}
+datain <- read.csv("pml-training.csv", stringsAsFactors = FALSE)
+validation <- read.csv("pml-testing.csv", stringsAsFactors = FALSE)
+```
+
+*Eliminate Spurious Data*
+Next, we look to reduce the number of variables we are computing over by looking at the percentage of the variable's record that is NA.
+
+```{r isna, results='hide'}
+nacols <- 0 #vector has to exist first
+for(i in 1:length(colnames(datain))) {
+   nacols[i] <- sum(is.na(datain[,i]))/length(datain[,i])
+}
+filtrain <- datain[,nacols<.9]
+```
+Due to the length of the output (160 lines), it is supressed in this report but 67 of the columns from the .csv were found to have over 90% of their data to be NA.  Thus we save computing time by only computing over 93 variables.
+
+*Cut into train and test*
+Now we take out available data in datain and create training and testing sets (as the classe-less pml-test.csv file serves as validation)
+```{r traintest, cache=TRUE}
+inTrain <- createDataPartition(y=datain$classe, p=.8, list=FALSE)
+trainset <- filtrain[inTrain,]
+testset <- filtrain[-inTrain,]
+dim(trainset); dim(testset)
+```
+
+
+*Train the model*
+Now we train several models on the TRAINING set in order to have something to predict with.  We use the random forest method as for this project interpretability and computation times are not high proirities.
+
+```{r trainingblock, cache=TRUE}
+fitRF <- train(classe ~ ., data=trainset, method="rf")
+```
+
+*Out of Sample Error*
+Once we have the trained model, we see how well they predict the, "classe" on the testing data set.
+
+```{r testingblock, cache=TRUE}
+predRF <- predict(fitRF, testing)
+accuracy <- confusionMatrix(predRF, testing$classe)$overall[1]
+accuracy <- accuracy*100 #human readable
+```
+
+Thus we get an `accuracy` percent accuracy on the testing subset of the data.
+
+*Conclusions*
+
+
+
+
+
+
+The data for this project come from this source: http://groupware.les.inf.puc-rio.br/har.
